@@ -15,6 +15,7 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Zson mZson;
+        Zson zson = new Zson();
+        zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");
     }
 }
