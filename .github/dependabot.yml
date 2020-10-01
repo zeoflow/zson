@@ -1,6 +1,9 @@
-version: 1
+version: 2
 update_configs:
-  - package_manager: "javascript"
+  - package-ecosystem: "pip"
     directory: "/null"
-    update_schedule: "monthly"
-    target_branch: "null"
+    schedule:
+      interval: "monthly"
+    target-branch: "null"
+    labels:
+      - "@null-dependencies"
