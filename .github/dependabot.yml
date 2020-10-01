@@ -1,1 +1,5 @@
-version: 2
+version: 1
+update_configs:
+  - package_manager: "javascript"
+    directory: "/null"
+    update_schedule: "monthly"
