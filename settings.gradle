@@ -1,0 +1,4 @@
+include ':zson'
+include ':app'
+
+rootProject.name = 'zson'
