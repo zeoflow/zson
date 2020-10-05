@@ -17,12 +17,19 @@
 package com.zeoflow.test;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zeoflow.test.models.ModelClassNew;
 import com.zeoflow.test.models.ModelClassOld;
+import com.zeoflow.zson.JsonElement;
+import com.zeoflow.zson.Zson;
+import com.zeoflow.zson.ZsonAttributes;
 import com.zeoflow.zson.ZsonCast;
+import com.zeoflow.zson.model.Attribute;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -33,15 +40,35 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ModelClassOld zModelClassOld = new ModelClassOld();
-        zModelClassOld.setCount(124);
-        ModelClassNew zModelClassNew = ZsonCast.fromObject(zModelClassOld)
-            .toObject(ModelClassNew.class)
-            .cast();
-
+//        ModelClassOld zModelClassOld = new ModelClassOld();
+//        zModelClassOld.setCount(124);
+//        ModelClassNew zModelClassNew = ZsonCast.fromObject(zModelClassOld)
+//            .toObject(ModelClassNew.class)
+//            .cast();
+//
 //        Zson zson = new Zson();
 //        zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");
 
+//        String jsonString = "[{strUserData=strUserData, user_id=12}]";
+//        ZsonAttributes
+//            .withJson(jsonString);
+
+//        List<Attribute> entries = ZsonAttributes
+//            .withObject(zModelClassNew)
+//            .getAllAttributes();
+
+//        Attribute zJsonElement = ZsonAttributes
+//            .withObject(zModelClassNew)
+//            .getAttribute("errorContent");
+//        Log.d("zJsonElement", String.valueOf(zJsonElement.getValue()));
+//        zJsonElement = ZsonAttributes
+//            .withObject(zModelClassNew)
+//            .getAttribute("zModelClassNewS", "errorContent");
+//        Log.d("zJsonElement", String.valueOf(zJsonElement.getValue()));
+//        zJsonElement = ZsonAttributes
+//            .withObject(zModelClassNew)
+//            .getAttribute("zModelClassNewS", "zModelClassNewS", "errorContent");
+//        Log.d("zJsonElement", String.valueOf(zJsonElement.getValue()));
 
     }
 

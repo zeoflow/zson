@@ -1,15 +1,14 @@
 package com.zeoflow.test.models;
 
-public class ModelClassNew
+public class ModelClassNewSS
 {
 
-    private boolean error;
-    private int errorID;
-    private String errorContent;
-    private int count;
-    private ModelClassNewS zModelClassNewS = new ModelClassNewS();
+    private boolean error = true;
+    private int errorID = 342;
+    private String errorContent = "ModelClassNewSS";
+    private int count = 2343;
 
-    public ModelClassNew()
+    public ModelClassNewSS()
     {
 
     }
