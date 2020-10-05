@@ -1,12 +1,12 @@
 /**
  * Copyright 2020 ZeoFlow SRL
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,13 +17,12 @@
 package com.zeoflow.test;
 
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.zeoflow.test.models.ModelClassNew;
 import com.zeoflow.test.models.ModelClassOld;
-import com.zeoflow.zson.Zson;
+import com.zeoflow.zson.ZsonCast;
 
 public class MainActivity extends AppCompatActivity
 {
@@ -36,14 +35,14 @@ public class MainActivity extends AppCompatActivity
 
         ModelClassOld zModelClassOld = new ModelClassOld();
         zModelClassOld.setCount(124);
-        ModelClassNew zModelClassNew = Zson.initializeCast()
-            .fromObject(zModelClassOld)
+        ModelClassNew zModelClassNew = ZsonCast.fromObject(zModelClassOld)
             .toObject(ModelClassNew.class)
             .cast();
-        Log.d("zModelClassNew.class", String.valueOf(zModelClassNew.getCount()));
 
-        Zson zson = new Zson();
-        zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");
+//        Zson zson = new Zson();
+//        zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");
+
+
     }
 
 }
