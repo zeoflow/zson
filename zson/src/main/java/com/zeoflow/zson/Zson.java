@@ -16,6 +16,8 @@
 
 package com.zeoflow.zson;
 
+import com.zeoflow.zson.annotations.Expose;
+import com.zeoflow.zson.annotations.Since;
 import com.zeoflow.zson.internal.ConstructorConstructor;
 import com.zeoflow.zson.internal.Excluder;
 import com.zeoflow.zson.internal.Primitives;
@@ -37,8 +39,6 @@ import com.zeoflow.zson.stream.JsonReader;
 import com.zeoflow.zson.stream.JsonToken;
 import com.zeoflow.zson.stream.JsonWriter;
 import com.zeoflow.zson.stream.MalformedJsonException;
-import com.zeoflow.zson.annotations.Expose;
-import com.zeoflow.zson.annotations.Since;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -102,8 +102,14 @@ import java.util.concurrent.atomic.AtomicLongArray;
  * @author Jesse Wilson
  * @see TypeToken
  */
-public final class Zson
+public class Zson
 {
+
+    public static ZsonCast initializeCast()
+    {
+        return new ZsonCast();
+    }
+
     static final boolean DEFAULT_JSON_NON_EXECUTABLE = false;
     static final boolean DEFAULT_LENIENT = false;
     static final boolean DEFAULT_PRETTY_PRINT = false;
@@ -662,8 +668,8 @@ public final class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @return Json representation of {@code src}
      * @since 1.4
      */
@@ -707,8 +713,8 @@ public final class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @return Json representation of {@code src}
      */
     public String toJson(Object src, Type typeOfSrc)
@@ -753,8 +759,8 @@ public final class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @param writer    Writer to which the Json representation of src needs to be written.
      * @throws JsonIOException if there was a problem writing to the writer
      * @since 1.2
@@ -936,8 +942,8 @@ public final class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      * @throws JsonParseException  if json is not a valid representation for an object of type typeOfT
@@ -951,8 +957,7 @@ public final class Zson
             return null;
         }
         StringReader reader = new StringReader(json);
-        T target = (T) fromJson(reader, typeOfT);
-        return target;
+        return (T) fromJson(reader, typeOfT);
     }
 
     /**
@@ -993,8 +998,8 @@ public final class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the json. Returns {@code null} if {@code json} is at EOF.
      * @throws JsonIOException     if there was a problem reading from the Reader
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
@@ -1113,8 +1118,8 @@ public final class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
