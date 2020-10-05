@@ -36,8 +36,11 @@ public class MainActivity extends AppCompatActivity
 
         ModelClassOld zModelClassOld = new ModelClassOld();
         zModelClassOld.setCount(124);
-        ModelClassNew zModelClassNew = Zson.castToObject(zModelClassOld, ModelClassNew.class);
-        Log.d("zModelClassNew.class", String.valueOf(zModelClassNew));
+        ModelClassNew zModelClassNew = Zson.initializeCast()
+            .fromObject(zModelClassOld)
+            .toObject(ModelClassNew.class)
+            .cast();
+        Log.d("zModelClassNew.class", String.valueOf(zModelClassNew.getCount()));
 
         Zson zson = new Zson();
         zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");

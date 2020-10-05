@@ -16,8 +16,8 @@
 
 package com.zeoflow.zson;
 
-import android.util.Log;
-
+import com.zeoflow.zson.annotations.Expose;
+import com.zeoflow.zson.annotations.Since;
 import com.zeoflow.zson.internal.ConstructorConstructor;
 import com.zeoflow.zson.internal.Excluder;
 import com.zeoflow.zson.internal.Primitives;
@@ -39,8 +39,6 @@ import com.zeoflow.zson.stream.JsonReader;
 import com.zeoflow.zson.stream.JsonToken;
 import com.zeoflow.zson.stream.JsonWriter;
 import com.zeoflow.zson.stream.MalformedJsonException;
-import com.zeoflow.zson.annotations.Expose;
-import com.zeoflow.zson.annotations.Since;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -48,7 +46,6 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -58,7 +55,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -109,11 +105,9 @@ import java.util.concurrent.atomic.AtomicLongArray;
 public class Zson
 {
 
-    public static <T> T castToObject(Object oldObject, Class<T> classOfT) {
-        Zson zson= new Zson();
-        String json = zson.toJson(oldObject);
-        Object object = zson.fromJson(json, (Type) classOfT);
-        return (T) object;
+    public static ZsonCast initializeCast()
+    {
+        return new ZsonCast();
     }
 
     static final boolean DEFAULT_JSON_NON_EXECUTABLE = false;
@@ -674,8 +668,8 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @return Json representation of {@code src}
      * @since 1.4
      */
@@ -719,8 +713,8 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @return Json representation of {@code src}
      */
     public String toJson(Object src, Type typeOfSrc)
@@ -765,8 +759,8 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                  Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                  </pre>
+     *                                                                     Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                     </pre>
      * @param writer    Writer to which the Json representation of src needs to be written.
      * @throws JsonIOException if there was a problem writing to the writer
      * @since 1.2
@@ -948,8 +942,8 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      * @throws JsonParseException  if json is not a valid representation for an object of type typeOfT
@@ -1004,8 +998,8 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the json. Returns {@code null} if {@code json} is at EOF.
      * @throws JsonIOException     if there was a problem reading from the Reader
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
@@ -1124,8 +1118,8 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                </pre>
+     *                                                             Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                             </pre>
      * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
      * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
