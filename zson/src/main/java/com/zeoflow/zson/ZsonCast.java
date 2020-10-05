@@ -8,15 +8,14 @@ public class ZsonCast
     private Object oldObject;
     private Object classOfT;
 
-    public ZsonCast()
-    {
-
-    }
-
-    public ZsonCast fromObject(Object oldObject)
+    public ZsonCast(Object oldObject)
     {
         this.oldObject = oldObject;
-        return this;
+    }
+
+    public static ZsonCast fromObject(Object oldObject)
+    {
+        return new ZsonCast(oldObject);
     }
 
     public <T> ZsonCast toObject(Class<T> classOfT)
