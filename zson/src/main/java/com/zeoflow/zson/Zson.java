@@ -16,6 +16,8 @@
 
 package com.zeoflow.zson;
 
+import android.util.Log;
+
 import com.zeoflow.zson.internal.ConstructorConstructor;
 import com.zeoflow.zson.internal.Excluder;
 import com.zeoflow.zson.internal.Primitives;
@@ -46,6 +48,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -55,6 +58,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicLongArray;
@@ -102,8 +106,16 @@ import java.util.concurrent.atomic.AtomicLongArray;
  * @author Jesse Wilson
  * @see TypeToken
  */
-public final class Zson
+public class Zson
 {
+
+    public static <T> T castToObject(Object oldObject, Class<T> classOfT) {
+        Zson zson= new Zson();
+        String json = zson.toJson(oldObject);
+        Object object = zson.fromJson(json, (Type) classOfT);
+        return (T) object;
+    }
+
     static final boolean DEFAULT_JSON_NON_EXECUTABLE = false;
     static final boolean DEFAULT_LENIENT = false;
     static final boolean DEFAULT_PRETTY_PRINT = false;
@@ -951,8 +963,7 @@ public final class Zson
             return null;
         }
         StringReader reader = new StringReader(json);
-        T target = (T) fromJson(reader, typeOfT);
-        return target;
+        return (T) fromJson(reader, typeOfT);
     }
 
     /**

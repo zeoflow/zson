@@ -17,9 +17,12 @@
 package com.zeoflow.test;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.zeoflow.test.models.ModelClassNew;
+import com.zeoflow.test.models.ModelClassOld;
 import com.zeoflow.zson.Zson;
 
 public class MainActivity extends AppCompatActivity
@@ -31,7 +34,13 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ModelClassOld zModelClassOld = new ModelClassOld();
+        zModelClassOld.setCount(124);
+        ModelClassNew zModelClassNew = Zson.castToObject(zModelClassOld, ModelClassNew.class);
+        Log.d("zModelClassNew.class", String.valueOf(zModelClassNew));
+
         Zson zson = new Zson();
         zson.newBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss");
     }
+
 }
