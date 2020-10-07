@@ -34,10 +34,10 @@ task clean(type: Delete) {
 ext {
     compileSdkVersion = 30
     buildToolsVersion = '30.0.1'
-    minSdkVersion = 21
+    minSdkVersion = 14
     targetSdkVersion = 30
-    versionCode = 3
-    versionName = "1.2.0"
+    versionCode = 4
+    versionName = "1.2.1"
 
     androidx = [
             appcompat: 'androidx.appcompat:appcompat:1.0.0',
