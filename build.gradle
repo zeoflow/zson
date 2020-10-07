@@ -14,16 +14,16 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:4.0.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
-        // NOTE: Do not place your application dependencies here; they belong
-        // in the individual module build.gradle files
     }
 }
 
 allprojects {
     repositories {
-        jcenter()
+        maven { url 'https://maven.fabric.io/public' }
+        maven { url 'https://jitpack.io' }
+        mavenCentral()
         google()
+        jcenter()
     }
 }
 
@@ -34,13 +34,14 @@ task clean(type: Delete) {
 ext {
     compileSdkVersion = 30
     buildToolsVersion = '30.0.1'
-    minSdkVersion = 14
+    minSdkVersion = 21
     targetSdkVersion = 30
-    versionCode = 4
-    versionName = "1.2.1"
+    versionCode = 5
+    versionName = "1.2.2"
+    ndk = "21.3.6528147"
 
     androidx = [
-            appcompat: 'androidx.appcompat:appcompat:1.0.0',
+        appcompat: 'androidx.appcompat:appcompat:1.0.0',
     ]
 
 }
