@@ -39,9 +39,9 @@ import java.lang.annotation.Target;
  * public class User {
  *   private String firstName;
  *   private String lastName;
- *   &#64Since(1.0) private String emailAddress;
- *   &#64Since(1.0) private String password;
- *   &#64Since(1.1) private Address address;
+ *   #64Since(1.0) private String emailAddress;
+ *   #64Since(1.0) private String password;
+ *   #64Since(1.1) private Address address;
  * }
  * </pre>
  *

@@ -77,7 +77,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
  * MyType target = new MyType();
  * String json = Zson.toJson(target); // serializes target to Json
  * MyType target2 = Zson.fromJson(json, MyType.class); // deserializes json into target2
- * </pre></p>
+ * </pre>
  *
  * <p>If the object that your are serializing/deserializing is a {@code ParameterizedType}
  * (i.e. contains at least one type parameter and may be an array) then you must use the
@@ -92,7 +92,7 @@ import java.util.concurrent.atomic.AtomicLongArray;
  * Zson Zson = new Zson();
  * String json = Zson.toJson(target, listType);
  * List&lt;String&gt; target2 = Zson.fromJson(json, listType);
- * </pre></p>
+ * </pre>
  *
  * <p>See the <a href="https://sites.google.com/site/Zson/Zson-user-guide">Zson User Guide</a>
  * for a more complete set of examples.</p>

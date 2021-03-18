@@ -170,19 +170,19 @@ import java.util.Arrays;
  * precision loss, extremely large values should be written and read as strings
  * in JSON.
  *
- * <a name="nonexecuteprefix"/><h3>Non-Execute Prefix</h3>
+ * <h3>Non-Execute Prefix</h3>
  * Web servers that serve private data using JSON may be vulnerable to <a
  * href="http://en.wikipedia.org/wiki/JSON#Cross-site_request_forgery">Cross-site
  * request forgery</a> attacks. In such an attack, a malicious site gains access
  * to a private JSON file by executing it with an HTML {@code <script>} tag.
  *
- * <p>Prefixing JSON files with <code>")]}'\n"</code> makes them non-executable
+ * Prefixing JSON files with <code>")]}'\n"</code> makes them non-executable
  * by {@code <script>} tags, disarming the attack. Since the prefix is malformed
  * JSON, strict parsing fails when it is encountered. This class permits the
  * non-execute prefix when {@link #setLenient(boolean) lenient parsing} is
  * enabled.
  *
- * <p>Each {@code JsonReader} may be used to read a single JSON stream. Instances
+ * Each {@code JsonReader} may be used to read a single JSON stream. Instances
  * of this class are not thread safe.
  *
  * @author Jesse Wilson
