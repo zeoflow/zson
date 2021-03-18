@@ -96,12 +96,11 @@ license_checker:
     # with extension
     extensions:
       - java
-      - kt
-      - xml
   # files to ignore
   to_ignore:
     # with path
     files_path:
+      - app/
 
 # Draft Release (DR)
 # automatically make a draft release
@@ -145,16 +144,16 @@ draft_release:
       # these labels will influence the next version
       labels:
         - '@security'
-        - '@priority-critical'
         - '@feature'
-        - '@priority-high'
         - '@maintenance'
+        - '@priority-high'
     # patch - version category
     patch:
       # these labels will influence the next version
       labels:
         - '@dependency-update'
         - '@enhancement'
+        - '@priority-critical'
         - '@priority-medium'
         - '@priority-low'
         - '@priority-very-low'
