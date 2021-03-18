@@ -33,7 +33,7 @@ import java.lang.annotation.Target;
  *
  * <p>Here is an example of how this annotation is used:</p>
  * <pre>
- * &#64JsonAdapter(UserJsonAdapter.class)
+ * #64JsonAdapter(UserJsonAdapter.class)
  * public class User {
  *   public final String firstName, lastName;
  *   private User(String firstName, String lastName) {
@@ -42,7 +42,7 @@ import java.lang.annotation.Target;
  *   }
  * }
  * public class UserJsonAdapter extends TypeAdapter&lt;User&gt; {
- *   &#64Override public void write(JsonWriter out, User user) throws IOException {
+ *   #64Override public void write(JsonWriter out, User user) throws IOException {
  *     // implement write: combine firstName and lastName into name
  *     out.beginObject();
  *     out.name("name");
@@ -50,7 +50,7 @@ import java.lang.annotation.Target;
  *     out.endObject();
  *     // implement the write method
  *   }
- *   &#64Override public User read(JsonReader in) throws IOException {
+ *   #64Override public User read(JsonReader in) throws IOException {
  *     // implement read: split name into firstName and lastName
  *     in.beginObject();
  *     in.nextName();
@@ -61,13 +61,13 @@ import java.lang.annotation.Target;
  * }
  * </pre>
  *
- * Since User class specified UserJsonAdapter.class in &#64JsonAdapter annotation, it
+ * Since User class specified UserJsonAdapter.class in #64JsonAdapter annotation, it
  * will automatically be invoked to serialize/deserialize User instances. <br>
  *
  * <p> Here is an example of how to apply this annotation to a field.
  * <pre>
  * private static final class Gadget {
- *   &#64JsonAdapter(UserJsonAdapter2.class)
+ *   #64JsonAdapter(UserJsonAdapter2.class)
  *   final User user;
  *   Gadget(User user) {
  *     this.user = user;

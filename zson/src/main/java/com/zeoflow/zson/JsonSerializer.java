@@ -40,7 +40,7 @@ import java.lang.reflect.Type;
  *     return value;
  *   }
  * }
- * </pre></p>
+ * </pre>
  *
  * <p>The default serialization of {@code Id(com.foo.MyObject.class, 20L)} will be
  * <code>{"clazz":com.foo.MyObject,"value":20}</code>. Suppose, you just want the output to be
@@ -53,7 +53,7 @@ import java.lang.reflect.Type;
  *     return new JsonPrimitive(id.getValue());
  *   }
  * }
- * </pre></p>
+ * </pre>
  *
  * <p>You will also need to register {@code IdSerializer} with Zson as follows:</p>
  * <pre>

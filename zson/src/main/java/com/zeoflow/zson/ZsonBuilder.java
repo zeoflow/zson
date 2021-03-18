@@ -61,7 +61,7 @@ import static com.zeoflow.zson.Zson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
  *     .setPrettyPrinting()
  *     .setVersion(1.0)
  *     .create();
- * </pre></p>
+ * </pre>
  *
  * <p>NOTES:
  * <ul>
@@ -70,7 +70,6 @@ import static com.zeoflow.zson.Zson.DEFAULT_SPECIALIZE_FLOAT_VALUES;
  *  not contain time-zone information. So, if you are using date/time instances,
  *  use {@code ZsonBuilder} and its {@code setDateFormat} methods.</li>
  *  </ul>
- * </p>
  *
  * @author Inderjeet Singh
  * @author Joel Leitch
@@ -247,7 +246,7 @@ public final class ZsonBuilder
    *   original.put(new Point(5, 6), "a");
    *   original.put(new Point(8, 8), "b");
    *   System.out.println(Zson.toJson(original, type));
-   * }
+   * }</pre>
    *
    * The JSON output would look as follows:
    * <pre>   {@code
