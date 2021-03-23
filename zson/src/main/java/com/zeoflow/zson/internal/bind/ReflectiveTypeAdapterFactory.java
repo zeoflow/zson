@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2020 ZeoFlow
+ * Copyright (C) 2021 ZeoFlow
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,14 +52,16 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
   private final Excluder excluder;
   private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
   private final ReflectionAccessor accessor = ReflectionAccessor.getInstance();
+  private final boolean deserializeNulls;
 
   public ReflectiveTypeAdapterFactory(ConstructorConstructor constructorConstructor,
       FieldNamingStrategy fieldNamingPolicy, Excluder excluder,
-      JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory) {
+      JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory, boolean deserializeNulls) {
     this.constructorConstructor = constructorConstructor;
     this.fieldNamingPolicy = fieldNamingPolicy;
     this.excluder = excluder;
     this.jsonAdapterFactory = jsonAdapterFactory;
+    this.deserializeNulls = deserializeNulls;
   }
 
   public boolean excludeField(Field f, boolean serialize) {
@@ -130,6 +132,9 @@ public final class ReflectiveTypeAdapterFactory implements TypeAdapterFactory {
       @Override void read(JsonReader reader, Object value)
           throws IOException, IllegalAccessException {
         Object fieldValue = typeAdapter.read(reader);
+        if (fieldValue == null && !deserializeNulls){
+          return;
+        }
         if (fieldValue != null || !isPrimitive) {
           field.set(value, fieldValue);
         }
