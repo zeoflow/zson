@@ -110,33 +110,18 @@ public class Zson
     static final boolean DEFAULT_PRETTY_PRINT = false;
     static final boolean DEFAULT_ESCAPE_HTML = true;
     static final boolean DEFAULT_SERIALIZE_NULLS = false;
+    static final boolean DEFAULT_DESERIALIZE_NULLS = true;
     static final boolean DEFAULT_COMPLEX_MAP_KEYS = false;
     static final boolean DEFAULT_SPECIALIZE_FLOAT_VALUES = false;
 
     private static final TypeToken<?> NULL_KEY_SURROGATE = TypeToken.get(Object.class);
     private static final String JSON_NON_EXECUTABLE_PREFIX = ")]}'\n";
-
-    /**
-     * This thread local guards against reentrant calls to getAdapter(). In
-     * certain object graphs, creating an adapter for a type may recursively
-     * require an adapter for the same type! Without intervention, the recursive
-     * lookup would stack overflow. We cheat by returning a proxy type adapter.
-     * The proxy is wired up once the initial adapter has been created.
-     */
-    private final ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>> calls
-        = new ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>>();
-
-    private final Map<TypeToken<?>, TypeAdapter<?>> typeTokenCache = new ConcurrentHashMap<TypeToken<?>, TypeAdapter<?>>();
-
-    private final ConstructorConstructor constructorConstructor;
-    private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
-
     final List<TypeAdapterFactory> factories;
-
     final Excluder excluder;
     final FieldNamingStrategy fieldNamingStrategy;
     final Map<Type, InstanceCreator<?>> instanceCreators;
     final boolean serializeNulls;
+    final boolean deserializeNulls;
     final boolean complexMapKeySerialization;
     final boolean generateNonExecutableJson;
     final boolean htmlSafe;
@@ -149,6 +134,18 @@ public class Zson
     final LongSerializationPolicy longSerializationPolicy;
     final List<TypeAdapterFactory> builderFactories;
     final List<TypeAdapterFactory> builderHierarchyFactories;
+    /**
+     * This thread local guards against reentrant calls to getAdapter(). In
+     * certain object graphs, creating an adapter for a type may recursively
+     * require an adapter for the same type! Without intervention, the recursive
+     * lookup would stack overflow. We cheat by returning a proxy type adapter.
+     * The proxy is wired up once the initial adapter has been created.
+     */
+    private final ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>> calls
+            = new ThreadLocal<Map<TypeToken<?>, FutureTypeAdapter<?>>>();
+    private final Map<TypeToken<?>, TypeAdapter<?>> typeTokenCache = new ConcurrentHashMap<TypeToken<?>, TypeAdapter<?>>();
+    private final ConstructorConstructor constructorConstructor;
+    private final JsonAdapterAnnotationTypeAdapterFactory jsonAdapterFactory;
 
     /**
      * Constructs a Zson object with default configuration. The default configuration has the
@@ -187,16 +184,16 @@ public class Zson
     public Zson()
     {
         this(Excluder.DEFAULT, FieldNamingPolicy.IDENTITY,
-            Collections.<Type, InstanceCreator<?>>emptyMap(), DEFAULT_SERIALIZE_NULLS,
-            DEFAULT_COMPLEX_MAP_KEYS, DEFAULT_JSON_NON_EXECUTABLE, DEFAULT_ESCAPE_HTML,
-            DEFAULT_PRETTY_PRINT, DEFAULT_LENIENT, DEFAULT_SPECIALIZE_FLOAT_VALUES,
-            LongSerializationPolicy.DEFAULT, null, DateFormat.DEFAULT, DateFormat.DEFAULT,
-            Collections.<TypeAdapterFactory>emptyList(), Collections.<TypeAdapterFactory>emptyList(),
-            Collections.<TypeAdapterFactory>emptyList());
+                Collections.<Type, InstanceCreator<?>>emptyMap(), DEFAULT_SERIALIZE_NULLS, DEFAULT_DESERIALIZE_NULLS,
+                DEFAULT_COMPLEX_MAP_KEYS, DEFAULT_JSON_NON_EXECUTABLE, DEFAULT_ESCAPE_HTML,
+                DEFAULT_PRETTY_PRINT, DEFAULT_LENIENT, DEFAULT_SPECIALIZE_FLOAT_VALUES,
+                LongSerializationPolicy.DEFAULT, null, DateFormat.DEFAULT, DateFormat.DEFAULT,
+                Collections.<TypeAdapterFactory>emptyList(), Collections.<TypeAdapterFactory>emptyList(),
+                Collections.<TypeAdapterFactory>emptyList());
     }
 
     Zson(Excluder excluder, FieldNamingStrategy fieldNamingStrategy,
-         Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls,
+         Map<Type, InstanceCreator<?>> instanceCreators, boolean serializeNulls, boolean deserializeNulls,
          boolean complexMapKeySerialization, boolean generateNonExecutableZson, boolean htmlSafe,
          boolean prettyPrinting, boolean lenient, boolean serializeSpecialFloatingPointValues,
          LongSerializationPolicy longSerializationPolicy, String datePattern, int dateStyle,
@@ -209,6 +206,7 @@ public class Zson
         this.instanceCreators = instanceCreators;
         this.constructorConstructor = new ConstructorConstructor(instanceCreators);
         this.serializeNulls = serializeNulls;
+        this.deserializeNulls = deserializeNulls;
         this.complexMapKeySerialization = complexMapKeySerialization;
         this.generateNonExecutableJson = generateNonExecutableZson;
         this.htmlSafe = htmlSafe;
@@ -243,9 +241,9 @@ public class Zson
         TypeAdapter<Number> longAdapter = longAdapter(longSerializationPolicy);
         factories.add(TypeAdapters.newFactory(long.class, Long.class, longAdapter));
         factories.add(TypeAdapters.newFactory(double.class, Double.class,
-            doubleAdapter(serializeSpecialFloatingPointValues)));
+                doubleAdapter(serializeSpecialFloatingPointValues)));
         factories.add(TypeAdapters.newFactory(float.class, Float.class,
-            floatAdapter(serializeSpecialFloatingPointValues)));
+                floatAdapter(serializeSpecialFloatingPointValues)));
         factories.add(TypeAdapters.NUMBER_FACTORY);
         factories.add(TypeAdapters.ATOMIC_INTEGER_FACTORY);
         factories.add(TypeAdapters.ATOMIC_BOOLEAN_FACTORY);
@@ -279,120 +277,24 @@ public class Zson
         factories.add(jsonAdapterFactory);
         factories.add(TypeAdapters.ENUM_FACTORY);
         factories.add(new ReflectiveTypeAdapterFactory(
-            constructorConstructor, fieldNamingStrategy, excluder, jsonAdapterFactory));
+                constructorConstructor,
+                fieldNamingStrategy,
+                excluder,
+                jsonAdapterFactory,
+                deserializeNulls
+        ));
 
         this.factories = Collections.unmodifiableList(factories);
     }
-
-    /**
-     * Returns a new ZsonBuilder containing all custom factories and configuration used by the current
-     * instance.
-     *
-     * @return a ZsonBuilder instance.
-     */
-    public ZsonBuilder newBuilder()
-    {
-        return new ZsonBuilder(this);
-    }
-
-    public Excluder excluder()
-    {
-        return excluder;
-    }
-
-    public FieldNamingStrategy fieldNamingStrategy()
-    {
-        return fieldNamingStrategy;
-    }
-
-    public boolean serializeNulls()
-    {
-        return serializeNulls;
-    }
-
-    public boolean htmlSafe()
-    {
-        return htmlSafe;
-    }
-
-    private TypeAdapter<Number> doubleAdapter(boolean serializeSpecialFloatingPointValues)
-    {
-        if (serializeSpecialFloatingPointValues)
-        {
-            return TypeAdapters.DOUBLE;
-        }
-        return new TypeAdapter<Number>()
-        {
-            @Override
-            public Double read(JsonReader in) throws IOException
-            {
-                if (in.peek() == JsonToken.NULL)
-                {
-                    in.nextNull();
-                    return null;
-                }
-                return in.nextDouble();
-            }
-
-            @Override
-            public void write(JsonWriter out, Number value) throws IOException
-            {
-                if (value == null)
-                {
-                    out.nullValue();
-                    return;
-                }
-                double doubleValue = value.doubleValue();
-                checkValidFloatingPoint(doubleValue);
-                out.value(value);
-            }
-        };
-    }
-
-    private TypeAdapter<Number> floatAdapter(boolean serializeSpecialFloatingPointValues)
-    {
-        if (serializeSpecialFloatingPointValues)
-        {
-            return TypeAdapters.FLOAT;
-        }
-        return new TypeAdapter<Number>()
-        {
-            @Override
-            public Float read(JsonReader in) throws IOException
-            {
-                if (in.peek() == JsonToken.NULL)
-                {
-                    in.nextNull();
-                    return null;
-                }
-                return (float) in.nextDouble();
-            }
-
-            @Override
-            public void write(JsonWriter out, Number value) throws IOException
-            {
-                if (value == null)
-                {
-                    out.nullValue();
-                    return;
-                }
-                float floatValue = value.floatValue();
-                checkValidFloatingPoint(floatValue);
-                out.value(value);
-            }
-        };
-    }
-
     static void checkValidFloatingPoint(double value)
     {
         if (Double.isNaN(value) || Double.isInfinite(value))
         {
             throw new IllegalArgumentException(value
-                + " is not a valid double value as per JSON specification. To override this"
-                + " behavior, use ZsonBuilder.serializeSpecialFloatingPointValues() method.");
+                    + " is not a valid double value as per JSON specification. To override this"
+                    + " behavior, use ZsonBuilder.serializeSpecialFloatingPointValues() method.");
         }
     }
-
     private static TypeAdapter<Number> longAdapter(LongSerializationPolicy longSerializationPolicy)
     {
         if (longSerializationPolicy == LongSerializationPolicy.DEFAULT)
@@ -424,7 +326,6 @@ public class Zson
             }
         };
     }
-
     private static TypeAdapter<AtomicLong> atomicLongAdapter(final TypeAdapter<Number> longAdapter)
     {
         return new TypeAdapter<AtomicLong>()
@@ -443,7 +344,6 @@ public class Zson
             }
         }.nullSafe();
     }
-
     private static TypeAdapter<AtomicLongArray> atomicLongArrayAdapter(final TypeAdapter<Number> longAdapter)
     {
         return new TypeAdapter<AtomicLongArray>()
@@ -480,7 +380,114 @@ public class Zson
             }
         }.nullSafe();
     }
+    private static void assertFullConsumption(Object obj, JsonReader reader)
+    {
+        try
+        {
+            if (obj != null && reader.peek() != JsonToken.END_DOCUMENT)
+            {
+                throw new JsonIOException("JSON document was not fully consumed.");
+            }
+        } catch (MalformedJsonException e)
+        {
+            throw new JsonSyntaxException(e);
+        } catch (IOException e)
+        {
+            throw new JsonIOException(e);
+        }
+    }
+    /**
+     * Returns a new ZsonBuilder containing all custom factories and configuration used by the current
+     * instance.
+     *
+     * @return a ZsonBuilder instance.
+     */
+    public ZsonBuilder newBuilder()
+    {
+        return new ZsonBuilder(this);
+    }
+    public Excluder excluder()
+    {
+        return excluder;
+    }
+    public FieldNamingStrategy fieldNamingStrategy()
+    {
+        return fieldNamingStrategy;
+    }
+    public boolean serializeNulls()
+    {
+        return serializeNulls;
+    }
+    public boolean htmlSafe()
+    {
+        return htmlSafe;
+    }
+    private TypeAdapter<Number> doubleAdapter(boolean serializeSpecialFloatingPointValues)
+    {
+        if (serializeSpecialFloatingPointValues)
+        {
+            return TypeAdapters.DOUBLE;
+        }
+        return new TypeAdapter<Number>()
+        {
+            @Override
+            public Double read(JsonReader in) throws IOException
+            {
+                if (in.peek() == JsonToken.NULL)
+                {
+                    in.nextNull();
+                    return null;
+                }
+                return in.nextDouble();
+            }
 
+            @Override
+            public void write(JsonWriter out, Number value) throws IOException
+            {
+                if (value == null)
+                {
+                    out.nullValue();
+                    return;
+                }
+                double doubleValue = value.doubleValue();
+                checkValidFloatingPoint(doubleValue);
+                out.value(value);
+            }
+        };
+    }
+    private TypeAdapter<Number> floatAdapter(boolean serializeSpecialFloatingPointValues)
+    {
+        if (serializeSpecialFloatingPointValues)
+        {
+            return TypeAdapters.FLOAT;
+        }
+        return new TypeAdapter<Number>()
+        {
+            @Override
+            public Float read(JsonReader in) throws IOException
+            {
+                if (in.peek() == JsonToken.NULL)
+                {
+                    in.nextNull();
+                    return null;
+                }
+                return (float) in.nextDouble();
+            }
+
+            @Override
+            public void write(JsonWriter out, Number value) throws IOException
+            {
+                if (value == null)
+                {
+                    out.nullValue();
+                    return;
+                }
+                float floatValue = value.floatValue();
+                checkValidFloatingPoint(floatValue);
+                out.value(value);
+            }
+        };
+    }
     /**
      * Returns the type adapter for {@code} type.
      *
@@ -538,7 +545,6 @@ public class Zson
             }
         }
     }
-
     /**
      * This method is used to get an alternate type adapter for the specified type. This is used
      * to access a type adapter that is overridden by a {@link TypeAdapterFactory} that you
@@ -587,6 +593,7 @@ public class Zson
      *                 a matching type adapter. In most cases, you should just pass <i>this</i> (the type adapter
      *                 factory from where {@link #getDelegateAdapter} method is being invoked).
      * @param type     Type for which the delegate adapter is being searched for.
+     *
      * @since 2.2
      */
     public <T> TypeAdapter<T> getDelegateAdapter(TypeAdapterFactory skipPast, TypeToken<T> type)
@@ -618,7 +625,6 @@ public class Zson
         }
         throw new IllegalArgumentException("Zson cannot serialize " + type);
     }
-
     /**
      * Returns the type adapter for {@code} type.
      *
@@ -629,7 +635,6 @@ public class Zson
     {
         return getAdapter(TypeToken.get(type));
     }
-
     /**
      * This method serializes the specified object into its equivalent representation as a tree of
      * {@link JsonElement}s. This method should be used when the specified object is not a generic
@@ -640,7 +645,9 @@ public class Zson
      * {@link #toJsonTree(Object, Type)} instead.
      *
      * @param src the object for which Json representation is to be created setting for Zson
+     *
      * @return Json representation of {@code src}.
+     *
      * @since 1.4
      */
     public JsonElement toJsonTree(Object src)
@@ -651,7 +658,6 @@ public class Zson
         }
         return toJsonTree(src, src.getClass());
     }
-
     /**
      * This method serializes the specified object, including those of generic types, into its
      * equivalent representation as a tree of {@link JsonElement}s. This method must be used if the
@@ -663,9 +669,11 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                                                                                      Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                                      </pre>
+     *                                                                                                       Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                                       </pre>
+     *
      * @return Json representation of {@code src}
+     *
      * @since 1.4
      */
     public JsonElement toJsonTree(Object src, Type typeOfSrc)
@@ -674,7 +682,6 @@ public class Zson
         toJson(src, typeOfSrc, writer);
         return writer.get();
     }
-
     /**
      * This method serializes the specified object into its equivalent Json representation.
      * This method should be used when the specified object is not a generic type. This method uses
@@ -686,6 +693,7 @@ public class Zson
      * {@link Writer}, use {@link #toJson(Object, Appendable)} instead.
      *
      * @param src the object for which Json representation is to be created setting for Zson
+     *
      * @return Json representation of {@code src}.
      */
     public String toJson(Object src)
@@ -696,7 +704,6 @@ public class Zson
         }
         return toJson(src, src.getClass());
     }
-
     /**
      * This method serializes the specified object, including those of generic types, into its
      * equivalent Json representation. This method must be used if the specified object is a generic
@@ -708,8 +715,9 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                                                                                      Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                                      </pre>
+     *                                                                                                       Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                                       </pre>
+     *
      * @return Json representation of {@code src}
      */
     public String toJson(Object src, Type typeOfSrc)
@@ -718,7 +726,6 @@ public class Zson
         toJson(src, typeOfSrc, writer);
         return writer.toString();
     }
-
     /**
      * This method serializes the specified object into its equivalent Json representation.
      * This method should be used when the specified object is not a generic type. This method uses
@@ -730,6 +737,7 @@ public class Zson
      *
      * @param src    the object for which Json representation is to be created setting for Zson
      * @param writer Writer to which the Json representation needs to be written
+     *
      * @throws JsonIOException if there was a problem writing to the writer
      * @since 1.2
      */
@@ -743,7 +751,6 @@ public class Zson
             toJson(JsonNull.INSTANCE, writer);
         }
     }
-
     /**
      * This method serializes the specified object, including those of generic types, into its
      * equivalent Json representation. This method must be used if the specified object is a generic
@@ -754,9 +761,10 @@ public class Zson
      *                  this type by using the {@link TypeToken} class. For example,
      *                  to get the type for {@code Collection<Foo>}, you should use:
      *                  <pre>
-     *                                                                                      Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                                      </pre>
+     *                                                                                                       Type typeOfSrc = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                                       </pre>
      * @param writer    Writer to which the Json representation of src needs to be written.
+     *
      * @throws JsonIOException if there was a problem writing to the writer
      * @since 1.2
      */
@@ -771,7 +779,6 @@ public class Zson
             throw new JsonIOException(e);
         }
     }
-
     /**
      * Writes the JSON representation of {@code src} of type {@code typeOfSrc} to
      * {@code writer}.
@@ -806,12 +813,13 @@ public class Zson
             writer.setSerializeNulls(oldSerializeNulls);
         }
     }
-
     /**
      * Converts a tree of {@link JsonElement}s into its equivalent JSON representation.
      *
      * @param jsonElement root of a tree of {@link JsonElement}s
+     *
      * @return JSON String representation of the tree
+     *
      * @since 1.4
      */
     public String toJson(JsonElement jsonElement)
@@ -820,12 +828,12 @@ public class Zson
         toJson(jsonElement, writer);
         return writer.toString();
     }
-
     /**
      * Writes out the equivalent JSON for a tree of {@link JsonElement}s.
      *
      * @param jsonElement root of a tree of {@link JsonElement}s
      * @param writer      Writer to which the Json representation needs to be written
+     *
      * @throws JsonIOException if there was a problem writing to the writer
      * @since 1.4
      */
@@ -840,7 +848,6 @@ public class Zson
             throw new JsonIOException(e);
         }
     }
-
     /**
      * Returns a new JSON writer configured for the settings on this Zson instance.
      */
@@ -858,7 +865,6 @@ public class Zson
         jsonWriter.setSerializeNulls(serializeNulls);
         return jsonWriter;
     }
-
     /**
      * Returns a new JSON reader configured for the settings on this Zson instance.
      */
@@ -868,7 +874,6 @@ public class Zson
         jsonReader.setLenient(lenient);
         return jsonReader;
     }
-
     /**
      * Writes the JSON for {@code jsonElement} to {@code writer}.
      *
@@ -900,7 +905,6 @@ public class Zson
             writer.setSerializeNulls(oldSerializeNulls);
         }
     }
-
     /**
      * This method deserializes the specified Json into an object of the specified class. It is not
      * suitable to use if the specified class is a generic type since it will not have the generic
@@ -914,8 +918,10 @@ public class Zson
      * @param <T>      the type of the desired object
      * @param json     the string from which the object is to be deserialized
      * @param classOfT the class of T
+     *
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
+     *
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
      *                             classOfT
      */
@@ -924,7 +930,6 @@ public class Zson
         Object object = fromJson(json, (Type) classOfT);
         return Primitives.wrap(classOfT).cast(object);
     }
-
     /**
      * This method deserializes the specified Json into an object of the specified type. This method
      * is useful if the specified object is a generic type. For non-generic objects, use
@@ -937,10 +942,12 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                                                                            Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                            </pre>
+     *                                                                                           Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                           </pre>
+     *
      * @return an object of type T from the string. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
+     *
      * @throws JsonParseException  if json is not a valid representation for an object of type typeOfT
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
      */
@@ -954,7 +961,6 @@ public class Zson
         StringReader reader = new StringReader(json);
         return (T) fromJson(reader, typeOfT);
     }
-
     /**
      * This method deserializes the Json read from the specified reader into an object of the
      * specified class. It is not suitable to use if the specified class is a generic type since it
@@ -968,7 +974,9 @@ public class Zson
      * @param <T>      the type of the desired object
      * @param json     the reader producing the Json from which the object is to be deserialized.
      * @param classOfT the class of T
+     *
      * @return an object of type T from the string. Returns {@code null} if {@code json} is at EOF.
+     *
      * @throws JsonIOException     if there was a problem reading from the Reader
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
      * @since 1.2
@@ -980,7 +988,6 @@ public class Zson
         assertFullConsumption(object, jsonReader);
         return Primitives.wrap(classOfT).cast(object);
     }
-
     /**
      * This method deserializes the Json read from the specified reader into an object of the
      * specified type. This method is useful if the specified object is a generic type. For
@@ -993,9 +1000,11 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                                                                            Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                            </pre>
+     *                                                                                           Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                           </pre>
+     *
      * @return an object of type T from the json. Returns {@code null} if {@code json} is at EOF.
+     *
      * @throws JsonIOException     if there was a problem reading from the Reader
      * @throws JsonSyntaxException if json is not a valid representation for an object of type
      * @since 1.2
@@ -1008,24 +1017,6 @@ public class Zson
         assertFullConsumption(object, jsonReader);
         return object;
     }
-
-    private static void assertFullConsumption(Object obj, JsonReader reader)
-    {
-        try
-        {
-            if (obj != null && reader.peek() != JsonToken.END_DOCUMENT)
-            {
-                throw new JsonIOException("JSON document was not fully consumed.");
-            }
-        } catch (MalformedJsonException e)
-        {
-            throw new JsonSyntaxException(e);
-        } catch (IOException e)
-        {
-            throw new JsonIOException(e);
-        }
-    }
-
     /**
      * Reads the next JSON value from {@code reader} and convert it to an object
      * of type {@code typeOfT}. Returns {@code null}, if the {@code reader} is at EOF.
@@ -1090,8 +1081,10 @@ public class Zson
      * @param json     the root of the parse tree of {@link JsonElement}s from which the object is to
      *                 be deserialized
      * @param classOfT The class of T
+     *
      * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
+     *
      * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
      * @since 1.3
      */
@@ -1113,10 +1106,12 @@ public class Zson
      *                {@link TypeToken} class. For example, to get the type for
      *                {@code Collection<Foo>}, you should use:
      *                <pre>
-     *                                                                            Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
-     *                                                                            </pre>
+     *                                                                                           Type typeOfT = new TypeToken&lt;Collection&lt;Foo&gt;&gt;(){}.getType();
+     *                                                                                           </pre>
+     *
      * @return an object of type T from the json. Returns {@code null} if {@code json} is {@code null}
      * or if {@code json} is empty.
+     *
      * @throws JsonSyntaxException if json is not a valid representation for an object of type typeOfT
      * @since 1.3
      */
@@ -1129,9 +1124,20 @@ public class Zson
         }
         return (T) fromJson(new JsonTreeReader(json), typeOfT);
     }
+    @Override
+    public String toString()
+    {
+        return new StringBuilder("{serializeNulls:")
+                .append(serializeNulls)
+                .append(",factories:").append(factories)
+                .append(",instanceCreators:").append(constructorConstructor)
+                .append("}")
+                .toString();
+    }
 
     static class FutureTypeAdapter<T> extends TypeAdapter<T>
     {
+
         private TypeAdapter<T> delegate;
 
         public void setDelegate(TypeAdapter<T> typeAdapter)
@@ -1162,16 +1168,7 @@ public class Zson
             }
             delegate.write(out, value);
         }
+
     }
 
-    @Override
-    public String toString()
-    {
-        return new StringBuilder("{serializeNulls:")
-            .append(serializeNulls)
-            .append(",factories:").append(factories)
-            .append(",instanceCreators:").append(constructorConstructor)
-            .append("}")
-            .toString();
-    }
 }
