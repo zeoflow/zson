@@ -40,6 +40,10 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ModelClassNew modelClassNew = ZsonCast.fromObject(new ModelClassOld())
+                .toObject(ModelClassNew.class)
+                .cast();
+
 //        ModelClassOld zModelClassOld = new ModelClassOld();
 //        zModelClassOld.setCount(124);
 //        ModelClassNew zModelClassNew = ZsonCast.fromObject(zModelClassOld)
